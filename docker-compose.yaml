@@ -1,0 +1,47 @@
+version: "3"
+services:
+  # frontend:
+  #   container_name: frontend
+  #   build: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - cowlist
+  #   depends_on:
+  #     - server
+  #   volumes:
+  #     - "${PWD}/frontend:/frontend"
+  # server:
+  #   container_name: server
+  #   build: ./server
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     NODE_ENV: development
+  #     DB_HOST: database
+  #     DB_USER: postgres
+  #     DB_PASSWORD: docker
+  #     DB_DATABASE: cowlist
+  #     DB_PORT: 5432
+  #   networks:
+  #     - cowlist
+  #   depends_on:
+  #     - database
+  #   volumes:
+  #     - "${PWD}/server:/server"
+  spotrate-db:
+    container_name: spotrate-db
+    image: "postgres:latest"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: spotrate
+    networks:
+      - spotrate
+    volumes:
+      - "./db/data:/var/lib/postgresql/data postgres"
+  
+
+networks:
+  spotrate:
+    driver: bridge
