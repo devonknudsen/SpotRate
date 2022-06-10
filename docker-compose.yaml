@@ -11,37 +11,36 @@ services:
   #     - server
   #   volumes:
   #     - "${PWD}/frontend:/frontend"
-  # server:
-  #   container_name: server
-  #   build: ./server
-  #   ports:
-  #     - "3001:3001"
-  #   environment:
-  #     NODE_ENV: development
-  #     DB_HOST: database
-  #     DB_USER: postgres
-  #     DB_PASSWORD: docker
-  #     DB_DATABASE: cowlist
-  #     DB_PORT: 5432
-  #   networks:
-  #     - cowlist
-  #   depends_on:
-  #     - database
-  #   volumes:
-  #     - "${PWD}/server:/server"
+  spotrate-api:
+    container_name: spotrate-api
+    build: ./api
+    ports:
+      - "3001:5000"
+    networks:
+      - rate-net
+    depends_on:
+      spotrate-db:
+        condition: service_healthy
+
+    volumes:
+      - "./api:/api"
   spotrate-db:
     container_name: spotrate-db
     image: "postgres:latest"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: spotrate
     networks:
-      - spotrate
+      - rate-net
     volumes:
       - "./db/data:/var/lib/postgresql/data postgres"
   
-
 networks:
-  spotrate:
+  rate-net:
     driver: bridge
