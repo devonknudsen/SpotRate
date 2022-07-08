@@ -7,6 +7,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
+# RUN source venv/bin/activate   
+
 EXPOSE 5000
 
-CMD [ "pypy3", "./helloworld.py" ]
+ENV FLASK_APP=main.py
+
+CMD [ "pypy3", "./main.py" ]
+
+# CMD ["flask", "run"]

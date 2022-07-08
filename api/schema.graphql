@@ -1,0 +1,52 @@
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Artist {
+    id: ID!
+    name: String!
+    img_url: String
+    projects: [Project]
+}
+
+type Project {
+    id: ID!
+    title: String!
+    release_date: DateTime
+    art_url: String
+    artists: [Artist]
+    reviews: [Review] 
+}
+
+type Review {
+  id: ID!
+  platform: String!
+  rating: String!
+  rating_img: String
+  project: project!
+}
+
+type Query {
+    artists: [Artist]!
+    artist(artistId: ID!): Artist
+    artist(artistName: String!): Artist
+    
+    projects: [Project]!
+    project(projectId: ID!): Project
+    project(projectTitle: String!): Project
+
+    reviews: [Review]!
+    review(reviewId: ID!): Review
+    reviews(platform: String!): Review
+    
+}
+
+# type Mutation {
+#     createArtist(name: String!): Artist!
+#     createProject(title: String!, ): Artist!
+#     createReview(name: String!): Artist!
+#     deleteTodo(todoId: ID!): DeleteTodoResult!
+#     markDone(todoId: String!): TodoResult!
+#     updateDueDate(todoId: String, newDate: String!): TodoResult!
+# }
