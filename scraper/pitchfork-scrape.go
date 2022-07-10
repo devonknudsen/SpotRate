@@ -3,7 +3,10 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
+	"time"
 
 	"github.com/gocolly/colly"
 )
@@ -13,8 +16,8 @@ type review struct {
 	Artist   string
 	Genre    string
 	Label    string
+	Reviewed string
 	Score    string
-	CoverArt string
 }
 
 func main() {
@@ -25,6 +28,13 @@ func main() {
 	)
 
 	infoCollector := c.Clone()
+
+	c.Limit(&colly.LimitRule{
+		DomainGlob:  "*httpbin.*",
+		Parallelism: 2,
+		Delay:       2 * time.Second,
+		RandomDelay: time.Second,
+	})
 
 	c.OnRequest(func(r *colly.Request) {
 		fmt.Println("Visiting:", r.URL)
@@ -41,23 +51,32 @@ func main() {
 	})
 
 	infoCollector.OnHTML("article", func(e *colly.HTMLElement) {
-		// fmt.Println(e.ChildAttr("p.BaseWrap-sc-TURhJ.BaseText-fFzBQt.InfoSliceValue-gSTMso.eTiIvU.bsGTGn.glrVeB", "p"))
-		fmt.Println(e.ChildText("div.InfoSliceItem-kovQju.fMqnkQ > p"))
-		// tmpReview := review{}
-		// tmpReview.Title = e.ChildText("h1")
-		// tmpReview.Artist = [e.]
-		// tmpReview.Genre = e.ChildText("p.BaseWrap-sc-TURhJ.BaseText-fFzBQt.InfoSliceValue-gSTMso.eTiIvU.bsGTGn")
-		// tmpReview.Label = e.ChildText("p.BaseWrap-sc-TURhJ.BaseText-fFzBQt.InfoSliceValue-gSTMso.eTiIvU.bsGTGn")
-		// tmpProfile.Photo = e.ChildAttr("#name-poster", "src")
-		// tmpProfile.JobTitle = e.ChildText("#name-job-categories > a > span.itemprop")
-		// tmpProfile.BirthDate = e.ChildAttr("#name-born-info time", "datetime")
+		tmpReview := review{}
+		tmpReview.Title = e.ChildText("h1")
+		tmpReview.Artist = e.ChildText("div.BaseWrap-sc-TURhJ.BaseText-fFzBQt.SplitScreenContentHeaderArtist-lgjmiI.eTiIvU.ifBumJ.fUDxJr")
+
+		e.ForEach("div.InfoSliceItem-kovQju.fMqnkQ", func(n int, kf *colly.HTMLElement) {
+			if n == 0 {
+				tmpReview.Genre = kf.ChildText("p.BaseWrap-sc-TURhJ.BaseText-fFzBQt.InfoSliceValue-gSTMso.eTiIvU.bsGTGn.glrVeB")
+			}
+			if n == 1 {
+				tmpReview.Label = kf.ChildText("p.BaseWrap-sc-TURhJ.BaseText-fFzBQt.InfoSliceValue-gSTMso.eTiIvU.bsGTGn.glrVeB")
+			}
+			if n == 2 {
+				tmpReview.Reviewed = kf.ChildText("p.BaseWrap-sc-TURhJ.BaseText-fFzBQt.InfoSliceValue-gSTMso.eTiIvU.bsGTGn.glrVeB")
+			}
+		})
+
+		tmpReview.Score = e.ChildText("div.ScoreCircle-cJwsOz.cChWcX > p")
+
+		js, err := json.MarshalIndent(tmpReview, "", "    ")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(string(js))
 	})
 
-	// for i := 1; i <= 2063; i++ {
-	// 	url := "https://pitchfork.com/reviews/albums/?page=" + strconv.Itoa(int(i))
-
-	// 	c.Visit(url)
-	// }
-
-	c.Visit("https://pitchfork.com/reviews/albums/?page=1")
+	for i := 1; i <= 2063; i++ {
+		c.Visit(fmt.Sprintf("https://pitchfork.com/reviews/albums/?page=%d", i))
+	}
 }
